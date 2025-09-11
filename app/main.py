@@ -6,12 +6,14 @@ from fastapi import Body, Query, Header
 from fastapi import BackgroundTasks
 from uuid import uuid4
 from pathlib import Path
+import asyncio
 import base64
 from typing import Any, Dict, Optional
 import logging
 import json
 from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 import os
 load_dotenv()
@@ -23,6 +25,8 @@ from .schemas import (
     ErrorResponse,
     GetVideoJobStatusResponse,
 )
+from fal.video import submit as submit_video_job
+from fal.image import submit as submit_image_job
 
 
 app = FastAPI(title="Tokki Video Jobs API", version="0.1.0")
@@ -71,11 +75,11 @@ def download_file(url: str, output_path: Path, *, chunk_size: int = 1 << 15) -> 
                 if not chunk:
                     break
                 f.write(chunk)
-        logger.info("Video downloaded: url=%s -> %s", url, str(output_path))
+        logger.info("File downloaded: url=%s -> %s", url, str(output_path))
     except (HTTPError, URLError) as e:
-        logger.error("Video download failed (network): url=%s err=%s", url, str(e))
+        logger.error("File download failed (network): url=%s err=%s", url, str(e))
     except Exception as e:
-        logger.error("Video download failed: url=%s err=%s", url, str(e))
+        logger.error("File download failed: url=%s err=%s", url, str(e))
 
 
 @app.exception_handler(RequestValidationError)
@@ -103,7 +107,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
         500: {"model": ErrorResponse, "description": "서버 내부 오류"},
     },
 )
-def create_video_job(payload: CreateVideoJobRequest) -> CreateVideoJobResponse:
+async def create_video_job(payload: CreateVideoJobRequest) -> CreateVideoJobResponse:
     job_id = str(uuid4())
 
     # Build output path: app/data/image/origin/<uuid>.png
@@ -112,6 +116,9 @@ def create_video_job(payload: CreateVideoJobRequest) -> CreateVideoJobResponse:
 
     # Save the incoming data URI as PNG
     save_data_uri_png(payload.image_data_uri, output_path)
+
+    # Trigger image generation for this job_id in background (within running event loop)
+    asyncio.create_task(submit_image_job(job_id))
 
     return CreateVideoJobResponse(job_id=job_id)
 
@@ -192,6 +199,98 @@ async def webhook_post(
         "query": query_params,
         "body": body,
         "scheduled_download_to": saved_to,
+    }
+
+
+@app.post("/hook/v1/image-jobs/{job_id}")
+async def webhook_image_post(
+    job_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+):
+    headers: Dict[str, str] = {k: v for k, v in request.headers.items()}
+    query_params: Dict[str, str] = dict(request.query_params)
+    try:
+        body: Optional[Any] = await request.json()
+    except Exception:
+        # Fallback to raw body if not JSON
+        body_bytes = await request.body()
+        body = body_bytes.decode("utf-8", errors="replace") if body_bytes else None
+
+    try:
+        body_for_log = json.dumps(body, ensure_ascii=False)
+    except Exception:
+        body_for_log = str(body)
+
+    client = request.client.host if request.client else None
+    logger.info(
+        "Image Webhook POST job_id=%s client=%s headers=%s query=%s body=%s",
+        job_id,
+        client,
+        json.dumps(headers, ensure_ascii=False),
+        json.dumps(query_params, ensure_ascii=False),
+        body_for_log,
+    )
+
+    # Try scheduling image download if payload contains image URL
+    scheduled_to: Optional[str] = None
+    try:
+        if isinstance(body, dict):
+            payload = body.get("payload") or {}
+            image_url: Optional[str] = None
+            content_type: Optional[str] = None
+            if isinstance(payload, dict):
+                images = payload.get("images")
+                if isinstance(images, list) and images:
+                    first = images[0] or {}
+                    if isinstance(first, dict):
+                        image_url = first.get("url")
+                        content_type = first.get("content_type")
+                if not image_url:
+                    image_obj = payload.get("image") or {}
+                    if isinstance(image_obj, dict):
+                        image_url = image_obj.get("url")
+                        content_type = image_obj.get("content_type") or content_type
+
+            if isinstance(image_url, str) and image_url.startswith("http"):
+                # Determine extension from URL or content-type
+                ext: Optional[str] = None
+                try:
+                    path = urlparse(image_url).path
+                    if "." in path:
+                        ext = path.rsplit(".", 1)[1].lower()
+                except Exception:
+                    ext = None
+                allowed = {"png", "jpg", "jpeg", "webp"}
+                if ext not in allowed:
+                    if content_type == "image/jpeg":
+                        ext = "jpg"
+                    elif content_type == "image/webp":
+                        ext = "webp"
+                    else:
+                        ext = "png"
+
+                img_dir = Path(__file__).resolve().parent / "data" / "image" / "new"
+                img_path = img_dir / f"{job_id}.{ext}"
+                background_tasks.add_task(download_file, image_url, img_path)
+                scheduled_to = str(img_path)
+
+                # Also trigger video processing request, passing image_url via video_url parameter
+                try:
+                    asyncio.create_task(submit_video_job(job_id, video_url=image_url))
+                except Exception as e:
+                    logger.error("Scheduling video submit failed job_id=%s err=%s", job_id, str(e))
+    except Exception as e:
+        logger.error("Image webhook processing error job_id=%s err=%s", job_id, str(e))
+
+    return {
+        "job_id": job_id,
+        "method": "POST",
+        "path": str(request.url.path),
+        "headers": headers,
+        "query": query_params,
+        "body": body,
+        "scheduled_download_to": scheduled_to,
     }
 
 
