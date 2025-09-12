@@ -6,12 +6,8 @@ from typing import Optional
 import random
 
 load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 FAL_KEY = os.getenv("FAL_KEY")
 HOST_ADDRESS = os.getenv("HOST_ADDRESS")
-
-if not OPENAI_API_KEY:
-    raise RuntimeError("OPENAI_API_KEY가 설정되어 있지 않습니다. .env에 OPENAI_API_KEY=...를 추가하세요.")
 
 if not FAL_KEY:
     raise RuntimeError("FAL_KEY가 설정되어 있지 않습니다. .env에 FAL_KEY=...를 추가하세요.")
