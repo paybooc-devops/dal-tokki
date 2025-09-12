@@ -16,10 +16,17 @@ from urllib.error import URLError, HTTPError
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 import os
+import sys
 load_dotenv()
 HOST_ADDRESS = os.getenv("HOST_ADDRESS")
 
-from .schemas import (
+# Ensure project root is on sys.path when running as a script
+_current_dir = Path(__file__).resolve().parent
+_project_root = str(_current_dir.parent)
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
+from app.schemas import (
     CreateVideoJobRequest,
     CreateVideoJobResponse,
     ErrorResponse,

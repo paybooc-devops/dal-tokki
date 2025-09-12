@@ -16,11 +16,15 @@ if not FAL_KEY:
 
 async def submit(job_id: str):
     handler = await fal_client.submit_async(
-        "fal-ai/stable-diffusion-v3-medium/image-to-image",
+        #"fal-ai/stable-diffusion-v3-medium/image-to-image",
+        "fal-ai/nano-banana/edit",
         arguments={
-            "image_url": f"{HOST_ADDRESS}/static/image/origin/{job_id}.png",
-            "prompt": "A cute rabbit, line art, delicate drawing, elegant lines, beautiful, clean style, high quality, soft shadows, white background, transparent background",
-            "negative_prompt": "ugly, deformed, bad anatomy, disfigured, poor quality, low resolution, blurry, text, watermark, (not a rabbit), multiple rabbits, realistic"
+            "image_urls": [f"{HOST_ADDRESS}/static/image/origin/{job_id}.png"],
+            #"prompt": "A cute rabbit, line art, delicate drawing, elegant lines, beautiful, clean style, high quality, soft shadows, transparent background",
+            "prompt": "Based on the provided sketch reference, render a single rabbit (bunny) that faithfully preserves the sketch’s unique features — exact pose, proportions, linework, facial expression and distinctive markings — while enhancing into a highly detailed illustration; maintain the original strokes and stylization, crisp clean line-art with soft painterly fur shading and subtle color matching the sketch, high resolution, centered composition, transparent background, alpha channel",
+            #"negative_prompt": "ugly, deformed, bad anatomy, disfigured, poor quality, low resolution, blurry, text, watermark, (not a rabbit), multiple rabbits, realistic"
+            "num_images": 1,
+            "output_format": "png"
         },
         webhook_url=f"{HOST_ADDRESS}/hook/v1/image-jobs/{job_id}",
     )
