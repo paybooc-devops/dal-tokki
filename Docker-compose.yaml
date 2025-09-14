@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  tokki-video-jobs-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tokki-video-jobs-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/app/data
+      - ./env/.env:/app/.env:ro  # .env 파일을 마운트 (예: 로컬 env 디렉터리 사용)
+    deploy:
+      replicas: ${REPLICAS:-1}
+      restart_policy:
+        condition: on-failure
+
