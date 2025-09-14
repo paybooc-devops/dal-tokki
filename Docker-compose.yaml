@@ -1,11 +1,12 @@
 version: "3.8"
 
 services:
-  tokki-video-jobs-api:
+  dal-tokki-api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: tokki-video-jobs-api
+    image: dal-tokki-api:latest
+    container_name: dal-tokki-api
     ports:
       - "8000:8000"
     volumes:
