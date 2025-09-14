@@ -34,6 +34,7 @@ from app.schemas import (
 )
 from fal.video import submit as submit_video_job
 from fal.image import submit as submit_image_job
+from fal.transparent import submit as submit_transparent_job
 
 
 app = FastAPI(title="Tokki Video Jobs API", version="0.1.0")
@@ -139,15 +140,31 @@ async def create_video_job(payload: CreateVideoJobRequest) -> CreateVideoJobResp
     },
 )
 def get_video_job(job_id: str) -> GetVideoJobStatusResponse:
-    # Finished when result video exists
-    video_dir = Path(__file__).resolve().parent / "data" / "video" / "result"
-    video_path = video_dir / f"{job_id}.mp4"
+    base_dir = Path(__file__).resolve().parent / "data"
 
+    # 1) Video result → finish
+    video_path = base_dir / "video" / "result" / f"{job_id}.mp4"
     if video_path.exists():
-        url = f"{HOST_ADDRESS}/static/video/result/{job_id}.mp4"
-        return GetVideoJobStatusResponse(status="finish", url=url)
+        video_url = f"{HOST_ADDRESS}/static/video/result/{job_id}.mp4"
+        return GetVideoJobStatusResponse(status="finish", video_url=video_url, gen_url=None, origin_url=None)
 
-    return GetVideoJobStatusResponse(status="processing", url=None)
+    # 2) Transparent image exists → processing-3
+    transparent_path = base_dir / "image" / "transparent" / f"{job_id}.png"
+    if transparent_path.exists():
+        gen_url = f"{HOST_ADDRESS}/static/image/transparent/{job_id}.png"
+        # origin_url도 함께 세팅 가능
+        origin_path = base_dir / "image" / "origin" / f"{job_id}.png"
+        origin_url = f"{HOST_ADDRESS}/static/image/origin/{job_id}.png" if origin_path.exists() else None
+        return GetVideoJobStatusResponse(status="processing-3", video_url=None, gen_url=gen_url, origin_url=origin_url)
+
+    # 3) Origin image exists → processing-2
+    origin_path = base_dir / "image" / "origin" / f"{job_id}.png"
+    if origin_path.exists():
+        origin_url = f"{HOST_ADDRESS}/static/image/origin/{job_id}.png"
+        return GetVideoJobStatusResponse(status="processing-2", video_url=None, gen_url=None, origin_url=origin_url)
+
+    # 4) Default → processing-1
+    return GetVideoJobStatusResponse(status="processing-1", video_url=None, gen_url=None, origin_url=None)
 
 
 @app.post("/hook/v1/video-jobs/{job_id}")
@@ -282,13 +299,84 @@ async def webhook_image_post(
                 background_tasks.add_task(download_file, image_url, img_path)
                 scheduled_to = str(img_path)
 
-                # Also trigger video processing request, passing image_url via video_url parameter
+                # Trigger transparent background processing using the external URL immediately
                 try:
-                    asyncio.create_task(submit_video_job(job_id, video_url=image_url))
+                    asyncio.create_task(submit_transparent_job(job_id, source_image_url=image_url))
                 except Exception as e:
-                    logger.error("Scheduling video submit failed job_id=%s err=%s", job_id, str(e))
+                    logger.error("Scheduling transparent submit failed job_id=%s err=%s", job_id, str(e))
     except Exception as e:
         logger.error("Image webhook processing error job_id=%s err=%s", job_id, str(e))
+
+    return {
+        "job_id": job_id,
+        "method": "POST",
+        "path": str(request.url.path),
+        "headers": headers,
+        "query": query_params,
+        "body": body,
+        "scheduled_download_to": scheduled_to,
+    }
+
+
+@app.post("/hook/v1/transparent-jobs/{job_id}")
+async def webhook_transparent_post(
+    job_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+):
+    headers: Dict[str, str] = {k: v for k, v in request.headers.items()}
+    query_params: Dict[str, str] = dict(request.query_params)
+    try:
+        body: Optional[Any] = await request.json()
+    except Exception:
+        body_bytes = await request.body()
+        body = body_bytes.decode("utf-8", errors="replace") if body_bytes else None
+
+    try:
+        body_for_log = json.dumps(body, ensure_ascii=False)
+    except Exception:
+        body_for_log = str(body)
+
+    client = request.client.host if request.client else None
+    logger.info(
+        "Transparent Webhook POST job_id=%s client=%s headers=%s query=%s body=%s",
+        job_id,
+        client,
+        json.dumps(headers, ensure_ascii=False),
+        json.dumps(query_params, ensure_ascii=False),
+        body_for_log,
+    )
+
+    scheduled_to: Optional[str] = None
+    try:
+        image_url: Optional[str] = None
+        if isinstance(body, dict):
+            payload = body.get("payload") or {}
+            if isinstance(payload, dict):
+                # Common response shape: payload.image.url or payload.images[0].url
+                image_obj = payload.get("image") or {}
+                if isinstance(image_obj, dict):
+                    image_url = image_obj.get("url")
+                if not image_url:
+                    images = payload.get("images")
+                    if isinstance(images, list) and images:
+                        first = images[0] or {}
+                        if isinstance(first, dict):
+                            image_url = first.get("url")
+
+        if isinstance(image_url, str) and image_url.startswith("http"):
+            img_dir = Path(__file__).resolve().parent / "data" / "image" / "transparent"
+            img_path = img_dir / f"{job_id}.png"
+            background_tasks.add_task(download_file, image_url, img_path)
+            scheduled_to = str(img_path)
+
+            # After transparent image is saved (scheduled), trigger video generation using this transparent URL
+            try:
+                asyncio.create_task(submit_video_job(job_id, video_url=image_url))
+            except Exception as e:
+                logger.error("Scheduling video submit (after transparent) failed job_id=%s err=%s", job_id, str(e))
+    except Exception as e:
+        logger.error("Transparent webhook processing error job_id=%s err=%s", job_id, str(e))
 
     return {
         "job_id": job_id,

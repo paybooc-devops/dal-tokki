@@ -40,6 +40,7 @@ def generate_prompt() -> str:
         "Generate a natural and stable 5-second video using the provided rabbit image only. "
         "Do not add any new objects, characters, or overlays. No surreal or distorted effects. "
         "Keep the scene clean and realistic. Preserve the rabbit as the single subject. "
+        "Background must be a plain white screen with nothing else."
         "Actions: {actions}. Ensure duration is exactly 5 seconds."
     )
     # INSERT_YOUR_CODE
@@ -49,7 +50,7 @@ def generate_prompt() -> str:
 
 async def submit(job_id: str, video_url: Optional[str] = None):
     # Default endpoints
-    image_url = f"{HOST_ADDRESS}/static/image/origin/{job_id}.png"
+    image_url = f"{HOST_ADDRESS}/static/image/transparent/{job_id}.png"
     webhook = f"{HOST_ADDRESS}/hook/v1/video-jobs/{job_id}"
 
     # If a URL is provided:

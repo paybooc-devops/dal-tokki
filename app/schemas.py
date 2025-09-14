@@ -41,11 +41,11 @@ class ErrorResponse(BaseModel):
 
 
 class GetVideoJobStatusResponse(BaseModel):
-    status: Literal["finish", "processing"] = Field(
-        ..., description="작업 상태: 완료(finish) 또는 처리중(processing)"
+    status: Literal["finish", "processing-3", "processing-2", "processing-1"] = Field(
+        ..., description="작업 상태: finish | processing-3(transparent 있음) | processing-2(origin 있음) | processing-1(대기)"
     )
-    url: Optional[str] = Field(
-        None, description="status가 finish일 때 다운로드 가능한 파일의 URL"
-    )
+    video_url: Optional[str] = Field(None, description="비디오 결과 파일 URL")
+    gen_url: Optional[str] = Field(None, description="투명 배경 이미지 URL")
+    origin_url: Optional[str] = Field(None, description="원본 업로드 이미지 URL")
 
 
