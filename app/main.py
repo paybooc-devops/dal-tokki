@@ -142,29 +142,48 @@ async def create_video_job(payload: CreateVideoJobRequest) -> CreateVideoJobResp
 def get_video_job(job_id: str) -> GetVideoJobStatusResponse:
     base_dir = Path(__file__).resolve().parent / "data"
 
-    # 1) Video result → finish
+    # Precompute URLs
+    video_url = f"{HOST_ADDRESS}/static/video/result/{job_id}.mp4"
+    gen_url = f"{HOST_ADDRESS}/static/image/transparent/{job_id}.png"
+    origin_url = f"{HOST_ADDRESS}/static/image/origin/{job_id}.png"
+
+    # 1) Video result → finish (세 URL 모두 제공)
     video_path = base_dir / "video" / "result" / f"{job_id}.mp4"
     if video_path.exists():
-        video_url = f"{HOST_ADDRESS}/static/video/result/{job_id}.mp4"
-        return GetVideoJobStatusResponse(status="finish", video_url=video_url, gen_url=None, origin_url=None)
+        return GetVideoJobStatusResponse(
+            status="finish",
+            video_url=video_url,
+            gen_url=gen_url,
+            origin_url=origin_url,
+        )
 
-    # 2) Transparent image exists → processing-3
+    # 2) Transparent image exists → processing-3 (video_url만 없음)
     transparent_path = base_dir / "image" / "transparent" / f"{job_id}.png"
     if transparent_path.exists():
-        gen_url = f"{HOST_ADDRESS}/static/image/transparent/{job_id}.png"
-        # origin_url도 함께 세팅 가능
-        origin_path = base_dir / "image" / "origin" / f"{job_id}.png"
-        origin_url = f"{HOST_ADDRESS}/static/image/origin/{job_id}.png" if origin_path.exists() else None
-        return GetVideoJobStatusResponse(status="processing-3", video_url=None, gen_url=gen_url, origin_url=origin_url)
+        return GetVideoJobStatusResponse(
+            status="processing-3",
+            video_url=None,
+            gen_url=gen_url,
+            origin_url=origin_url,
+        )
 
-    # 3) Origin image exists → processing-2
+    # 3) Origin image exists → processing-2 (origin_url만 있음)
     origin_path = base_dir / "image" / "origin" / f"{job_id}.png"
     if origin_path.exists():
-        origin_url = f"{HOST_ADDRESS}/static/image/origin/{job_id}.png"
-        return GetVideoJobStatusResponse(status="processing-2", video_url=None, gen_url=None, origin_url=origin_url)
+        return GetVideoJobStatusResponse(
+            status="processing-2",
+            video_url=None,
+            gen_url=None,
+            origin_url=origin_url,
+        )
 
-    # 4) Default → processing-1
-    return GetVideoJobStatusResponse(status="processing-1", video_url=None, gen_url=None, origin_url=None)
+    # 4) Default → processing-1 (모두 없음)
+    return GetVideoJobStatusResponse(
+        status="processing-1",
+        video_url=None,
+        gen_url=None,
+        origin_url=None,
+    )
 
 
 @app.post("/hook/v1/video-jobs/{job_id}")
