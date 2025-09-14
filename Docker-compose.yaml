@@ -8,7 +8,7 @@ services:
     image: dal-tokki-api:latest
     container_name: dal-tokki-api
     ports:
-      - "8000:8000"
+      - "80:8000"
     volumes:
       - ./data:/app/app/data
       - .env:/app/.env:ro  # .env 파일을 마운트 (예: 로컬 env 디렉터리 사용)
