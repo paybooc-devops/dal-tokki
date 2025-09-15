@@ -152,7 +152,7 @@ async def create_video_job(payload: CreateVideoJobRequest) -> CreateVideoJobResp
     save_data_uri_png(payload.image_data_uri, output_path)
 
     # Trigger image generation for this job_id in background (within running event loop)
-    asyncio.create_task(submit_image_job(job_id))
+    asyncio.create_task(submit_image_job(job_id, style=payload.style or "3D"))
 
     return CreateVideoJobResponse(job_id=job_id)
 

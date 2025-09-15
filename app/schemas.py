@@ -7,6 +7,9 @@ class CreateVideoJobRequest(BaseModel):
     image_data_uri: str = Field(
         ..., description="Data URI 형식의 원본 이미지(base64 포함)"
     )
+    style: Optional[str] = Field(
+        "3D", description="이미지 생성 스타일. 미지정 시 기본값은 '3D'"
+    )
 
     @field_validator("image_data_uri")
     @classmethod
