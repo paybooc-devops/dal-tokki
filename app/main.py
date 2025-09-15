@@ -46,6 +46,32 @@ app.mount("/static", StaticFiles(directory=str(_data_root)), name="static")
 
 # Logger for webhook and API events (prints to Uvicorn console)
 logger = logging.getLogger("uvicorn.error")
+
+# Global header verification middleware for TOKKEY
+TOKKEY_SECRET = os.getenv("TOKKEY")
+_EXEMPT_PATH_PREFIXES = ("/static", "/docs", "/hook", "/redoc", "/openapi")
+
+
+@app.middleware("http")
+async def require_tokkey_header(request: Request, call_next):
+    path = request.url.path
+    if any(path.startswith(prefix) for prefix in _EXEMPT_PATH_PREFIXES):
+        return await call_next(request)
+
+    if not TOKKEY_SECRET:
+        return JSONResponse(
+            status_code=500,
+            content={"code": "CONFIG_ERROR", "message": "서버 설정 오류: TOKKEY 미설정"},
+        )
+
+    incoming = request.headers.get("TOKKEY")
+    if incoming != TOKKEY_SECRET:
+        return JSONResponse(
+            status_code=401,
+            content={"code": "UNAUTHORIZED", "message": "유효하지 않은 접근"},
+        )
+
+    return await call_next(request)
 def save_data_uri_png(data_uri: str, output_path: Path) -> None:
     """Save a base64 data URI image to a PNG file at the given path.
 
