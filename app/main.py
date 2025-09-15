@@ -138,6 +138,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     status_code=202,
     responses={
         422: {"model": ErrorResponse, "description": "유효성 검사 실패"},
+        402: {"model": ErrorResponse, "description": "결제 필요 또는 잔액 부족"},
         500: {"model": ErrorResponse, "description": "서버 내부 오류"},
     },
 )
@@ -151,8 +152,20 @@ async def create_video_job(payload: CreateVideoJobRequest) -> CreateVideoJobResp
     # Save the incoming data URI as PNG
     save_data_uri_png(payload.image_data_uri, output_path)
 
-    # Trigger image generation for this job_id in background (within running event loop)
-    asyncio.create_task(submit_image_job(job_id, style=payload.style or "3D"))
+    # Submit to FAL synchronously to catch errors (e.g., exhausted balance) before replying
+    try:
+        await submit_image_job(job_id, style=payload.style or "3D")
+    except Exception as e:
+        message = str(e)
+        if "Exhausted balance" in message or "User is locked" in message:
+            return JSONResponse(
+                status_code=402,
+                content={"code": "PAYMENT_REQUIRED", "message": "서비스 잔액이 부족합니다. 결제가 필요합니다."},
+            )
+        return JSONResponse(
+            status_code=500,
+            content={"code": "INTERNAL_ERROR", "message": "작업 생성 중 오류가 발생했습니다."},
+        )
 
     return CreateVideoJobResponse(job_id=job_id)
 
