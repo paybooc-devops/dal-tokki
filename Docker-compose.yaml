@@ -6,6 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: dal-tokki-api:latest
+    pull_policy: always
     container_name: dal-tokki-api
     ports:
       - "80:8000"

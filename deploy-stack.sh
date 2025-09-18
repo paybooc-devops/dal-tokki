@@ -11,4 +11,4 @@ mkdir -p data/video/result
 docker build -t dal-tokki-api:latest -f Dockerfile .
 
 # 스웜 배포 (Compose 파일 경로 주의: 대소문자 일치)
-REPLICAS=3 docker stack deploy --pull -c Docker-compose.yaml dal-tokki
+REPLICAS=3 docker stack deploy -c Docker-compose.yaml dal-tokki
