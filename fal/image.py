@@ -77,20 +77,21 @@ Female hanbok: pastel flower-patterned hanbok with skirt (chima) and jeogori, pa
 Male hanbok: pastel-toned hanbok with loose pants (baji), pastel do-po style with baji and belt, accessories like gat, belt, traditional headgear (hogeon). Male hanbok must always include baji (pants) and should not include skirts (no chima).
 """
     else:
-        prompt = """Based on the provided sketch, render a complete rabbit with fully drawn limbs (arms and legs) while preserving the sketch’s pose, proportions, and overall charm.
- Preserve the original sketch’s pose, proportions, and key details. Keep key elements from the sketch, such as ear shape, limb positions, and facial expression, while refining details and adding softness and a plush, cushion-like texture. Retain the charm and gesture of the sketch.
- The face and eyes must remain natural and rabbit-like (almond, round, crescent, etc.). The rabbit should look slightly cuter and younger, with a slightly larger head, softly rounded cheeks, and a gentle baby-like charm. The rabbit should also have a soft, plush, cushion-like texture, giving it a slightly squishy, huggable appearance like a stuffed animal. Keep it natural and subtle, not overly shiny or plastic-like.
- Enhance the sketch into a refined, high-quality illustration with soft painterly fur shading, smooth gradients, and subtle lighting to give a natural, slightly 3D feel.
- Include at most one Chuseok-themed prop (mortar & pestle, kite, lantern, rice cakes, or moon) only if it exists in the sketch, otherwise leave it out.
- Avoid geometric or symbolic eyes.
- Do not include any shadows.
- No background; keep it empty.
- Output should be centered, high resolution, with a white background.
-Clothing and accessory style variations:
- Traditional Korean hanbok styles should overall follow a 50:50 ratio of male to female hanbok across the full set of outputs (not within a single image).
- All hanbok should use a pastel-toned color palette for a soft, elegant look.
-Female hanbok: pastel flower-patterned hanbok with skirt (chima) and jeogori, pastel-toned elegant hanbok, pastel saekdong hanbok (striped sleeves), accessories like jokduri, jobawi, norigae.
-Male hanbok: pastel-toned hanbok with loose pants (baji), pastel do-po style with baji and belt, pastel saekdong-sleeved hanbok with baji, accessories like gat, belt, traditional headgear (hogeon). Male hanbok must always include baji (pants) and should not include skirts (no chima).
+        prompt = """Based on the provided sketch, render a 3D rabbit character with fully drawn limbs (arms and legs), keeping the pose and proportions inspired by the sketch. Preserve key elements from the sketch—ear shape, limb positions, and facial expression—while refining details and adding softness and a plush, cushion‑like texture. Retain the charm and gesture of the sketch, but design a new character inspired by the reference vibe only (not an identical copy).
+Species lock: rabbit only (lagomorph). Maintain correct rabbit anatomy—long oval ears, small triangular nose with a vertical philtrum, short round cottontail, hind legs proportionally longer than forelegs; do not drift to other species.
+Style and proportions: cute chibi body with rounded shapes; slightly larger head, softly rounded cheeks, gentle baby‑like charm.
+Materials: matte plush/velvet, softly squishy and huggable; minimize photoreal micro‑fur; soft SSS on ears and nose; low specular, moderate surface roughness so it never looks plastic or overly shiny.
+Eyes: very large dark‑brown irises covering 88–92% of the visible eye; minimal sclera as a thin rim; tiny pupils; small natural catchlights; moderate eye roughness (not glassy).
+Shading/lighting: highly detailed 3D shading and subtle fur rendering to create depth, but use high‑key, shadowless light‑tent lighting. Do not include any cast or drop shadows or ambient‑occlusion halos. White seamless background only; keep the frame empty besides the character. Output centered, high resolution.
+Chuseok prop: include at most one prop only if it exists in the sketch; otherwise exclude.
+Add-on for Chuseok props: if the sketch/reference shows any Chuseok-related item such as a mortar (jeolgu), lantern (cho‑rong), or songpyeon, recognize it and optionally include exactly one such prop together with the character; if none are present, leave the image without props.
+Clothing and accessory style variations across the full set (not per image):
+Overall 50:50 ratio of male to female hanbok.
+All hanbok use a pastel‑toned color palette for a soft, elegant look.
+Female hanbok: pastel flower‑patterned hanbok with skirt (chima) and jeogori; pastel saekdong sleeves; accessories like jokduri, jobawi, norigae.
+Male hanbok: pastel‑toned hanbok with loose pants (baji) always included (no chima); options like pastel do‑po with belt; pastel saekdong sleeves; accessories like gat, belt, traditional headgear (hogeon).
+Background: no scene; pure white seamless background only. Do not include any shadows.
+identical copy, text/watermark, logos/IP, photoreal micro‑fur, hard shadows, cast/drop shadows, ambient‑occlusion halos, gradient or textured background, vignette, overly glossy eyes, plastic/wet sheen, background objects, UI/HUD, heavy rim light
 """
     handler = await fal_client.submit_async(
         #"fal-ai/stable-diffusion-v3-medium/image-to-image",
