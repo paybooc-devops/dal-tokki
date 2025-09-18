@@ -44,19 +44,19 @@ Include at most one Chuseok-themed prop only if it exists in the sketch, otherwi
 """
     elif style == "SKETCH":
         prompt = """Based on the provided sketch, render a complete rabbit with fully drawn limbs (arms and legs) while preserving the sketch’s pose, proportions, and overall charm.
- Preserve the original sketch’s pose, proportions, and key details. Keep key elements from the sketch, such as ear shape, limb positions, and facial expression, while refining details and adding softness and a plush, cushion-like texture. Retain the charm and gesture of the sketch.
- The face and eyes must remain natural and rabbit-like (almond, round, crescent, etc.). The rabbit should look slightly cuter and younger, with a slightly larger head, softly rounded cheeks, and a gentle baby-like charm. The rabbit should also have a soft, plush, cushion-like texture, giving it a slightly squishy, huggable appearance like a stuffed animal. Keep it natural and subtle, not overly shiny or plastic-like.
- Enhance the sketch into a refined, high-quality illustration with soft painterly fur shading, smooth gradients, and subtle lighting to give a natural, slightly 3D feel.
- Include at most one Chuseok-themed prop (mortar & pestle, kite, lantern, rice cakes, or moon) only if it exists in the sketch, otherwise leave it out.
- Avoid geometric or symbolic eyes.
- Do not include any shadows.
- No background; keep it empty.
- Output should be centered, high resolution, with a white background.
-Clothing and accessory style variations:
- Traditional Korean hanbok styles should overall follow a 50:50 ratio of male to female hanbok across the full set of outputs (not within a single image).
- All hanbok should use a pastel-toned color palette for a soft, elegant look.
-Female hanbok: pastel flower-patterned hanbok with skirt (chima) and jeogori, pastel-toned elegant hanbok, pastel saekdong hanbok (striped sleeves), accessories like jokduri, jobawi, norigae.
-Male hanbok: pastel-toned hanbok with loose pants (baji), pastel do-po style with baji and belt, pastel saekdong-sleeved hanbok with baji, accessories like gat, belt, traditional headgear (hogeon). Male hanbok must always include baji (pants) and should not include skirts (no chima).
+Preserve the sketch’s original details and organic charm.
+The face and eyes must remain natural and rabbit-like (almond, round, crescent, etc.).
+Enhance the sketch into a refined, high-quality illustration with soft painterly fur shading, smooth gradients, and subtle lighting to give a natural, slightly 3D feel.
+Include at most one Chuseok-themed prop (mortar & pestle, kite, lantern, rice cakes, or moon) only if it exists in the sketch, otherwise leave it out.
+Avoid geometric or symbolic eyes.
+Do not include any shadows.
+No background; keep it empty.
+Output should be centered, high resolution, with a white background.
+**Clothing and accessory style variations:**
+Traditional Korean hanbok styles should overall follow a **50:50 ratio of male to female hanbok** across the full set of outputs (not within a single image).
+All hanbok should use a pastel-toned color palette for a soft, elegant look.
+- **Female hanbok:** pastel flower-patterned hanbok with skirt (chima) and jeogori, pastel-toned elegant hanbok, pastel saekdong hanbok (striped sleeves), accessories like jokduri, jobawi, norigae.
+- **Male hanbok:** pastel-toned hanbok with loose pants (baji), pastel do-po style with baji and belt, pastel saekdong-sleeved hanbok with baji, accessories like gat, belt, traditional headgear (hogeon). Male hanbok must always include baji (pants) and must not include skirts (no chima).
 """
     elif style == "2D":
         prompt = """Based on the provided sketch, render a flat 2D cartoon-style rabbit with a full-body view (the entire rabbit must be shown from head to toe, including torso, arms, legs, and feet).
