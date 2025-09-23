@@ -87,7 +87,7 @@ Chuseok prop: include at most one prop only if it exists in the sketch; otherwis
 Add-on for Chuseok props: if the sketch/reference shows any Chuseok-related item such as a mortar (jeolgu), lantern (cho‑rong), or songpyeon, recognize it and optionally include exactly one such prop together with the character; if none are present, leave the image without props.
 Clothing and accessory style variations across the full set (not per image):
 Overall 50:50 ratio of male to female hanbok.
-All hanbok use a pastel‑toned color palette for a soft, elegant look.
+The character must always be clothed. All hanbok use a pastel‑toned color palette for a soft, elegant look.
 Female hanbok: pastel flower‑patterned hanbok with skirt (chima) and jeogori; pastel saekdong sleeves; accessories like jokduri, jobawi, norigae.
 Male hanbok: pastel‑toned hanbok with loose pants (baji) always included (no chima); options like pastel do‑po with belt; pastel saekdong sleeves; accessories like gat, belt, traditional headgear (hogeon).
 Background: no scene; pure white seamless background only. Do not include any shadows.
